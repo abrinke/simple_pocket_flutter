@@ -111,10 +111,10 @@ class _TransactionListState extends State<TransactionList> {
                             );
                           },
                           child: Dismissible(
-                            key: Key(transaction!.id), // Ein eindeutiger Key ist erforderlich
+                            key: Key(transaction!.id),
                             direction: DismissDirection.endToStart, // Von rechts nach links wischen
                             onDismissed: (direction) {
-                              transaction.delete(); // Notiz löschen
+                              transaction.delete();
                             },
                             background: Container(
                               color: Colors.red, // Hintergrundfarbe beim Wischen
@@ -176,7 +176,6 @@ class _TransactionCreatorState extends State<TransactionCreator> {
   late TextEditingController _amountController;
   late TextEditingController _startDateController;
   late TextEditingController _endDateController;
-  bool _isPaid = false;
   bool _isIncome = false;
   bool _isRecurring = false;
 
@@ -201,7 +200,7 @@ class _TransactionCreatorState extends State<TransactionCreator> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           children: <Widget>[
             TextField(
@@ -212,15 +211,6 @@ class _TransactionCreatorState extends State<TransactionCreator> {
               controller: _amountController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(hintText: 'Betrag'),
-            ),
-            CheckboxListTile(
-              title: const Text('Bezahlt'),
-              value: _isPaid,
-              onChanged: (bool? value) {
-                setState(() {
-                  _isPaid = value ?? false;
-                });
-              },
             ),
             CheckboxListTile(
               title: const Text('Einnahme'),
@@ -265,7 +255,6 @@ class _TransactionCreatorState extends State<TransactionCreator> {
               startDate: DateTime.now(),
               endDate: DateTime.now()
           );
-          transaction.isPaid = _isPaid;
           Hive.box<Transaction>('transactions').add(transaction);
           Navigator.pop(context);
         },
@@ -274,18 +263,23 @@ class _TransactionCreatorState extends State<TransactionCreator> {
   }
 }
 
-
-class TransactionDetailPage extends StatelessWidget {
+class TransactionDetailPage extends StatefulWidget {
   final Transaction transaction;
 
-  TransactionDetailPage({required this.transaction});
+  const TransactionDetailPage({Key? key, required this.transaction}) : super(key: key);
+
+  @override
+  _TransactionDetailPageState createState() => _TransactionDetailPageState();
+}
+
+class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(transaction.title,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Text(widget.transaction.title,
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -295,15 +289,85 @@ class TransactionDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('Title: ${transaction.title}'),
-            Text('Amount: ${transaction.amount}'),
-            Text('Is Paid: ${transaction.isPaid ? 'Yes' : 'No'}'),
-            Text('Is Income: ${transaction.isIncome ? 'Yes' : 'No'}'),
-            Text('Is Recurring: ${transaction.isRecurring ? 'Yes' : 'No'}'),
-            Text('Start Date: ${transaction.startDate}'),
-            Text('End Date: ${transaction.endDate}'),
+            Text('Title: ${widget.transaction.title}'),
+            Text('Amount: ${widget.transaction.amount}'),
+            Text('Is Paid: ${widget.transaction.isPaid ? 'Yes' : 'No'}'),
+            Text('Is Income: ${widget.transaction.isIncome ? 'Yes' : 'No'}'),
+            Text('Is Recurring: ${widget.transaction.isRecurring ? 'Yes' : 'No'}'),
+            Text('Start Date: ${widget.transaction.startDate}'),
+            Text('End Date: ${widget.transaction.endDate}'),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.edit),
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => TransactionEditorPage(transaction: widget.transaction),
+          )).then((_) {
+            setState(() {});
+          });
+        },
+      ),
+    );
+  }
+}
+
+class TransactionEditorPage extends StatefulWidget {
+  final Transaction transaction;
+
+  TransactionEditorPage({Key? key, required this.transaction}) : super(key: key);
+
+  @override
+  _TransactionEditorPageState createState() => _TransactionEditorPageState();
+}
+
+class _TransactionEditorPageState extends State<TransactionEditorPage> {
+  late TextEditingController _titleController;
+  late TextEditingController _amountController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _titleController = TextEditingController(text: widget.transaction.title);
+    _amountController = TextEditingController(text: widget.transaction.amount.toString());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Edit Transaction',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: <Widget>[
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(hintText: 'Title'),
+            ),
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(hintText: 'Amount'),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.save),
+        onPressed: () {
+          widget.transaction.title = _titleController.text;
+          widget.transaction.amount = double.parse(_amountController.text);
+          widget.transaction.save();
+          Navigator.pop(context);
+        },
       ),
     );
   }
