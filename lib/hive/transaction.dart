@@ -6,7 +6,6 @@ part 'transaction.g.dart'; // Name des generierten Dateinamens
 
 @HiveType(typeId: 0)
 class Transaction extends HiveObject {
-
   @HiveField(0)
   String id = const Uuid().v1();
 
@@ -31,12 +30,11 @@ class Transaction extends HiveObject {
   @HiveField(7)
   DateTime? endDate;
 
-  Transaction({
-    required this.title,
-    required this.amount,
-    required this.isIncome,
-    required this.isRecurring,
-    this.startDate,
-    this.endDate
-  });
+  Transaction(
+      {required this.title,
+      required this.amount,
+      required this.isIncome,
+      required this.isRecurring,
+      this.startDate,
+      this.endDate});
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:simple_pocket/hive/transaction.dart';
-import 'package:simple_pocket/widgets/transaction.dart';
+import 'package:simple_pocket/widgets/transaction/transaction_list.dart';
 
 void main() async {
   await Hive.initFlutter();
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
       home: const TransactionList(),
