@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:simple_pocket/hive/transaction.dart';
+import 'package:simple_pocket/widgets/transaction/silver_app_bar.dart';
 import 'package:simple_pocket/widgets/transaction/transaction_list.dart';
 
 void main() async {
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const TransactionList(),
+      home: SliverAppBarEx(),
     );
   }
 }
