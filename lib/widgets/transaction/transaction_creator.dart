@@ -4,7 +4,9 @@ import 'package:hive/hive.dart';
 import '../../hive/transaction.dart';
 
 class TransactionCreator extends StatefulWidget {
-  TransactionCreator({Key? key}) : super(key: key);
+  final VoidCallback onTransactionAdded;
+
+  TransactionCreator({required this.onTransactionAdded});
 
   @override
   _TransactionCreatorState createState() => _TransactionCreatorState();
@@ -119,6 +121,7 @@ class _TransactionCreatorState extends State<TransactionCreator> {
             endDate: DateTime.now(),
           );
           Hive.box<Transaction>('transactions').add(transaction);
+          widget.onTransactionAdded();
           Navigator.pop(context);
         },
       ),

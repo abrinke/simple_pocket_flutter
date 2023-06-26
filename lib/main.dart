@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:simple_pocket/hive/transaction.dart';
 import 'package:simple_pocket/widgets/transaction/silver_app_bar.dart';
-import 'package:simple_pocket/widgets/transaction/transaction_list.dart';
 
 void main() async {
   await Hive.initFlutter();
