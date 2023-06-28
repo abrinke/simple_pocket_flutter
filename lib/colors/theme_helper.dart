@@ -10,4 +10,8 @@ class ThemeHelper {
   static Color primary(BuildContext context) {
     return Theme.of(context).colorScheme.primary;
   }
+
+  static Color error(BuildContext context) {
+    return Theme.of(context).colorScheme.error;
+  }
 }

@@ -34,7 +34,7 @@ class _SliverAppBarExState extends State<SliverAppBarEx> {
 
   Future<void> initHiveBox() async {
     hiveBox = Hive.box<Transaction>('transactions');
-    transactions = hiveBox.values.toList();
+    transactions = hiveBox.values.where((transaction) => !transaction.isIncome).toList();
     transactionsNotifier = ValueNotifier(transactions);
   }
 
@@ -42,7 +42,7 @@ class _SliverAppBarExState extends State<SliverAppBarEx> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
-        physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: <Widget>[
           SliverAppBar(
             pinned: true,
@@ -67,16 +67,14 @@ class _SliverAppBarExState extends State<SliverAppBarEx> {
 
               // Iterate over transactions and calculate sums
               for (var transaction in transactions) {
-                if (!transaction.isPaid && !transaction.isIncome) {
+                if (!transaction.isPaid) {
                   output += transaction.amount;
                 }
               }
 
               // Sort the list based on amount
               transactions.sort((a, b) {
-                return isAscending
-                    ? a.amount.compareTo(b.amount)
-                    : b.amount.compareTo(a.amount);
+                return isAscending ? a.amount.compareTo(b.amount) : b.amount.compareTo(a.amount);
               });
 
               return SliverList(
@@ -86,57 +84,68 @@ class _SliverAppBarExState extends State<SliverAppBarEx> {
                     if (index == 0) {
                       return Column(
                         children: [
-                          Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  size: 35.0,
-                                  Icons.chevron_left,
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    color: ThemeHelper.primary(context),
+                                    size: 35.0,
+                                    Icons.chevron_left,
+                                  ),
+                                  onPressed: () {},
                                 ),
-                                onPressed: () {},
-                              ),
-                              const Icon(Icons.calendar_today),
-                              Text(
-                                currentDate,
-                                style: const TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
+                                Text(
+                                  currentDate,
+                                  style: TextStyle(
+                                    color: ThemeHelper.primary(context),
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  size: 35.0,
-                                    Icons.chevron_right),
-                                onPressed: () {
-                                },
-                              ),
-                            ],
+                                IconButton(
+                                  icon: Icon(
+                                      size: 35.0,
+                                      color: ThemeHelper.primary(context),
+                                      Icons.chevron_right),
+                                  onPressed: () {},
+                                ),
+                              ],
+                            ),
                           ),
-                          Row(
+                          Column(
                             children: [
-                              Expanded(
-                                  child: Text(
-                                'Offener Betrag',
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 18,
-                                  letterSpacing: 0.5,
-                                  color: Theme.of(context).colorScheme.inverseSurface,
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Offener Betrag:',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 18,
+                                        letterSpacing: 0.5,
+                                        color: Theme.of(context).colorScheme.inverseSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      output.toString(),
+                                      textAlign: TextAlign.right,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 18,
+                                        letterSpacing: 0.5,
+                                        color: Theme.of(context).colorScheme.inverseSurface,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              )),
-                              Expanded(
-                                  child: Text(
-                                output.toString(),
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 18,
-                                  letterSpacing: 0.5,
-                                  color: Theme.of(context).colorScheme.inverseSurface,
-                                ),
-                              )),
+                              ),
+                              const Divider(),
                             ],
                           ),
                         ],
@@ -146,69 +155,79 @@ class _SliverAppBarExState extends State<SliverAppBarEx> {
                     // For other indices, show the transaction
                     final transaction = transactions[index - 1];
 
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) =>
-                                  TransactionDetailPage(transaction: transaction),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0);
-                                const end = Offset.zero;
-                                const curve = Curves.ease;
-                                var tween =
-                                    Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                return SlideTransition(
-                                  position: animation.drive(tween),
-                                  child: child,
-                                );
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) =>
+                                TransactionDetailPage(transaction: transaction),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.ease;
+                              var tween =
+                                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              return SlideTransition(
+                                position: animation.drive(tween),
+                                child: child,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      child: transaction.isIncome == false
+                          ? Dismissible(
+                              key: Key(transaction.id),
+                              direction: DismissDirection.endToStart,
+                              onDismissed: (direction) {
+                                hiveBox.delete(transaction);
+                                transaction.delete();
+                                refreshTransactions();
                               },
-                            ),
-                          );
-                        },
-                        child: transaction.isIncome == false
-                            ? Dismissible(
-                                key: Key(transaction.id),
-                                direction: DismissDirection.endToStart,
-                                // Von rechts nach links wischen
-                                onDismissed: (direction) {
-                                  hiveBox.delete(transaction);
-                                  transaction.delete();
-                                  refreshTransactions();
-                                },
-                                background: Container(
-                                  color: Colors.redAccent, // Symbol beim Wischen
-                                  alignment: Alignment.centerRight,
-                                  padding:
-                                      EdgeInsets.only(right: 20), // Hintergrundfarbe beim Wischen
-                                  child: Icon(Icons.delete, color: Colors.white),
-                                ),
-                                child: ListTile(
-                                  title: Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: Text(transaction.title),
-                                      ),
-                                      Expanded(
-                                        child: Text(transaction.amount.toString()),
-                                      ),
-                                      Checkbox(
-                                        value: transaction.isPaid,
-                                        onChanged: (bool? value) {
-                                          setState(() {
-                                            transaction.isPaid = value ?? false;
-                                            transaction.save();
-                                          });
-                                        },
-                                      ),
-                                    ],
+                              background: Container(
+                                color: ThemeHelper.error(context),
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 25),
+                                child: const Icon(Icons.delete, color: Colors.white),
+                              ),
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    title: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          transaction.title,
+                                          style: TextStyle(
+                                            color: ThemeHelper.inverseSurface(context),
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                        Text(
+                                          transaction.amount.toString(),
+                                          style: TextStyle(
+                                            color: ThemeHelper.inverseSurface(context),
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                        Checkbox(
+                                            value: transaction.isPaid,
+                                            onChanged: (bool? value) {
+                                              setState(() {
+                                                transaction.isPaid = value ?? false;
+                                                transaction.save();
+                                              });
+                                            }),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )
-                            : Container(),
-                      ),
+                                ],
+                              ))
+                          : Container(),
                     );
                   },
                   childCount: transactions.length + 1, // +1 to include the summary
@@ -231,10 +250,8 @@ class _SliverAppBarExState extends State<SliverAppBarEx> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       bottomNavigationBar: BottomAppBar(
         child: Row(
-          children: [IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.view_agenda)
-          ),
+          children: [
+            IconButton(onPressed: () {}, icon: const Icon(Icons.view_agenda)),
             IconButton(
               onPressed: () {
                 setState(() {
@@ -242,7 +259,8 @@ class _SliverAppBarExState extends State<SliverAppBarEx> {
                 });
               },
               icon: Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward),
-            ),],
+            ),
+          ],
         ),
       ),
     );
